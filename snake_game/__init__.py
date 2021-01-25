@@ -12,6 +12,20 @@ CLOCK_TICK = 10
 
 BLACK_COLOR = (0, 0, 0)
 GREEN_COLOR = (120, 200, 122)
+RED_COLOR = (122, 3, 20)
+
+
+class Wall(pygame.sprite.Sprite):
+    """ Implement the wall borders of the game """
+    def __init__(self, color, width, height):
+        super().__init__()
+        self.image = pygame.Surface([width, height])
+        self.image.fill(color)
+        self.rect = self.image.get_rect()
+
+    def set_position(self, x_position, y_position):
+        """ setting the position of the wall """
+        self.rect = self.rect.move(x_position, y_position)
 
 
 class Snake(pygame.sprite.Sprite):  # pylint: disable=R0902
@@ -79,7 +93,7 @@ class Snake(pygame.sprite.Sprite):  # pylint: disable=R0902
         self._up_movement = False
 
     def reset_position(self):
-        """ Reset the position of the snake to a random position """
+        """ reset the position of the snake to a random position """
         x_position = random.randrange(X_WINDOW - SNAKE_BLOCK)
         y_position = random.randrange(Y_WINDOW - SNAKE_BLOCK)
         movement_choice = random.randrange(0, 4)
@@ -96,11 +110,11 @@ class Snake(pygame.sprite.Sprite):  # pylint: disable=R0902
         self.move(x_position, y_position)
 
     def move(self, x_position, y_position):
-        """ Move the snake block """
+        """ move the snake block """
         self.rect = self.rect.move(x_position, y_position)
 
     def movement(self):
-        """ Movement of the snake """
+        """ movement of the snake """
         if self._right_movement:
             x_pos = MOVEMENT_BLOCK
             y_pos = 0
@@ -118,8 +132,16 @@ class Snake(pygame.sprite.Sprite):  # pylint: disable=R0902
 
         self.move(x_pos, y_pos)
 
+    def check_snake_movement(self):
+        """ check if the snake get outside the canvas """
+        if self.rect.y >= Y_WINDOW:
+            self.rect.y = 0
+        elif self.rect.y < 0:
+            self.rect.y = Y_WINDOW
+
     def update(self):
         """ update the movement """
+        self.check_snake_movement()
         self.movement()
 
 
@@ -128,6 +150,12 @@ def main():
     pygame.init()
     clock = pygame.time.Clock()
     canvas = pygame.display.set_mode((X_WINDOW, Y_WINDOW))
+
+    wall_right = Wall(RED_COLOR, 5, Y_WINDOW)
+    wall_right.set_position(0, 0)
+    wall_left = Wall(RED_COLOR, 5, Y_WINDOW)
+    wall_left.set_position(X_WINDOW-5, 0)
+
     snake = Snake(GREEN_COLOR, SNAKE_BLOCK, SNAKE_BLOCK)
     snake_body = pygame.sprite.Group()
     snake_body.add(snake)
@@ -156,6 +184,8 @@ def main():
         snake_body.update()
         canvas.fill(BLACK_COLOR)
         canvas.blit(snake.image, snake.rect)
+        canvas.blit(wall_right.image, wall_right.rect)
+        canvas.blit(wall_left.image, wall_left.rect)
         pygame.display.flip()
 
 
