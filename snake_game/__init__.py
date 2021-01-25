@@ -155,6 +155,9 @@ def main():
     wall_right.set_position(0, 0)
     wall_left = Wall(RED_COLOR, 5, Y_WINDOW)
     wall_left.set_position(X_WINDOW-5, 0)
+    walls = pygame.sprite.Group()
+    walls.add(wall_right)
+    walls.add(wall_left)
 
     snake = Snake(GREEN_COLOR, SNAKE_BLOCK, SNAKE_BLOCK)
     snake_body = pygame.sprite.Group()
@@ -182,6 +185,10 @@ def main():
                     snake.left_movement = True
 
         snake_body.update()
+
+        # check collision
+        pygame.sprite.groupcollide(snake_body, walls, True, False)
+
         canvas.fill(BLACK_COLOR)
         canvas.blit(snake.image, snake.rect)
         canvas.blit(wall_right.image, wall_right.rect)
