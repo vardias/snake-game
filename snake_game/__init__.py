@@ -8,14 +8,41 @@ Y_WINDOW = 600
 
 MOVEMENT_BLOCK = 20
 SNAKE_BLOCK = 20
-CLOCK_TICK = 10
+FRUIT_BLOCK = 20
 
 BLACK_COLOR = (0, 0, 0)
 GREEN_COLOR = (120, 200, 122)
 RED_COLOR = (122, 3, 20)
+BLUE_COLOR = (30, 3, 170)
 
 
-class Wall(pygame.sprite.Sprite):
+class Fruit(pygame.sprite.Sprite):
+    """ Implement the fruit obect """
+    def __init__(self, color, width, height, group, speed):
+        # pylint: disable=too-many-arguments
+        super().__init__()
+        self.image = pygame.Surface([width, height])
+        self.image.fill(color)
+        self.rect = self.image.get_rect()
+        self.group = group
+        self.speed = speed
+
+    def random_position(self):
+        """ setting a random position of the fruit """
+        x_position = random.randrange(X_WINDOW - FRUIT_BLOCK - 5)
+        y_position = random.randrange(Y_WINDOW - FRUIT_BLOCK - 5)
+        self.rect.x = 0
+        self.rect.y = 0
+        self.rect = self.rect.move(x_position, y_position)
+
+    def update(self):
+        """ update the fruit """
+        if pygame.sprite.spritecollide(self, self.group, False):
+            self.random_position()
+            self.speed.increase_game_speed()
+
+
+class Wall(pygame.sprite.Sprite):  # pylint: disable=too-few-public-methods
     """ Implement the wall borders of the game """
     def __init__(self, color, width, height):
         super().__init__()
@@ -145,11 +172,27 @@ class Snake(pygame.sprite.Sprite):  # pylint: disable=R0902
         self.movement()
 
 
+class GameSpeed():
+    """ class for game speed """
+    def __init__(self):
+        self.game_speed = 5
+
+    def get_game_speed(self):
+        """ return the game speed value """
+        return self.game_speed
+
+    def increase_game_speed(self):
+        """ increase game speed by one """
+        self.game_speed += 1
+
+
 def main():
     """ main loop of the game """
     pygame.init()
     clock = pygame.time.Clock()
     canvas = pygame.display.set_mode((X_WINDOW, Y_WINDOW))
+
+    speed = GameSpeed()
 
     wall_right = Wall(RED_COLOR, 5, Y_WINDOW)
     wall_right.set_position(0, 0)
@@ -164,9 +207,14 @@ def main():
     snake_body.add(snake)
     snake.reset_position()
 
+    fruit = Fruit(BLUE_COLOR, FRUIT_BLOCK, FRUIT_BLOCK, snake_body, speed)
+    fruit.random_position()
+    fruit_block = pygame.sprite.Group()
+    fruit_block.add(fruit)
+
     exit_flag = False
     while not exit_flag:
-        clock.tick(CLOCK_TICK)
+        clock.tick(speed.get_game_speed())
         for event in pygame.event.get():
             if event.type == pygame.QUIT:
                 exit_flag = True
@@ -185,6 +233,7 @@ def main():
                     snake.left_movement = True
 
         snake_body.update()
+        fruit.update()
 
         # check collision
         pygame.sprite.groupcollide(snake_body, walls, True, False)
@@ -193,6 +242,7 @@ def main():
         canvas.blit(snake.image, snake.rect)
         canvas.blit(wall_right.image, wall_right.rect)
         canvas.blit(wall_left.image, wall_left.rect)
+        canvas.blit(fruit.image, fruit.rect)
         pygame.display.flip()
 
 
